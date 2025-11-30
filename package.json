@@ -1,0 +1,53 @@
+{
+  "name": "bachelorbazaar",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000B\u0000a\u0000c\u0000h\u0000e\u0000l\u0000o\u0000r\u0000B\u0000a\u0000z\u0000a\u0000a\u0000r\u0000-\u0000b\u0000a\u0000c\u0000k\u0000e\u0000n\u0000d\u0000\r\u0000 \u0000",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "tsc && node dist/server.js",
+    "dev": "nodemon - exec 'ts-node' dist/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/riya-sharma17/BachelorBazaar-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/riya-sharma17/BachelorBazaar-backend/issues"
+  },
+  "homepage": "https://github.com/riya-sharma17/BachelorBazaar-backend#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "crons": "^1.1.1-alpha.0",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "joi": "^18.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongod": "^2.0.0",
+    "mongoose": "^8.20.1",
+    "multer": "^2.0.2",
+    "node": "^20.19.6",
+    "nodemailer": "^7.0.9",
+    "nodemon": "^3.1.10",
+    "socket.io": "^4.8.1",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/joi": "^17.2.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.96",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.1",
+    "@types/nodemailer": "^7.0.2",
+    "@types/socket.io": "^3.0.1",
+    "@types/typescript": "^0.4.29"
+  }
+}

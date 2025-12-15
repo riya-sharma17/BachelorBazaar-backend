@@ -1,13 +1,11 @@
 import express from "express";
+import * as dotenv from "dotenv";
 import cors from "cors";
 import http from "http";
 import { connectDB } from "./src/databases/connection";
 import { App } from "./src/app";
 
-if (!process.env.RAILWAY_ENVIRONMENT) {
-  require("dotenv").config();
-}
-
+dotenv.config();
 
 const port = Number(process.env.PORT) || 4001;
 const base_url = process.env.BASE_URL || "";

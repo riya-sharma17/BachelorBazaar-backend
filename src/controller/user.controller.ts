@@ -20,7 +20,7 @@ if (!process.env.PRIVATE_KEY) {
 
 const generateToken = (user: any) => {
     return jwt.sign(
-        { _id: user._id, email: user.email, userName: user.userName },
+        { _id: user._id, email: user.email, name: user.name },
         process.env.PRIVATE_KEY as string,
         { expiresIn: (process.env.ACCESS_TOKEN_EXPIRY as "1d") || "1d" }
     );
@@ -114,7 +114,7 @@ export const verifyOtp = async (
                 message: ERROR_RESPONSE.EMAIL_NOT_EXISTS,
             })
         }
-        if (!user || user.OTP !== otp) {
+        if (!user.OTP !== otp) {
             return res.status(400).json({
                 message: ERROR_RESPONSE.INVALID_OR_EXPIRED_OTP,
             });

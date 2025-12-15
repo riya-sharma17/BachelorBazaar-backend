@@ -52,7 +52,7 @@ if (!process.env.PRIVATE_KEY) {
     throw new Error("Missing PRIVATE_KEY in environment variables.");
 }
 const generateToken = (user) => {
-    return jsonwebtoken_1.default.sign({ _id: user._id, email: user.email, userName: user.userName }, process.env.PRIVATE_KEY, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1d" });
+    return jsonwebtoken_1.default.sign({ _id: user._id, email: user.email, name: user.name }, process.env.PRIVATE_KEY, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1d" });
 };
 const sanitizeUser = (user) => {
     const obj = user.toObject();
@@ -128,7 +128,7 @@ const verifyOtp = async (req, res, next) => {
                 message: message_1.ERROR_RESPONSE.EMAIL_NOT_EXISTS,
             });
         }
-        if (!user || user.OTP !== otp) {
+        if (!user.OTP !== otp) {
             return res.status(400).json({
                 message: message_1.ERROR_RESPONSE.INVALID_OR_EXPIRED_OTP,
             });

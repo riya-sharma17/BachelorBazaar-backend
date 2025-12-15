@@ -31,7 +31,7 @@ const startServer = async () => {
         await myApp.initialize();
 
         server.listen(port, () => {
-            console.log(` Server running at mongodb://localhost:27017/BachelorBazaar${port}`);
+            console.log(` Server running at ${port}`);
         });
     } catch (err) {
         console.error("Server startup failed:", err);

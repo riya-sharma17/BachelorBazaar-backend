@@ -1,2 +1,2 @@
-declare const token: any;
+export {};
 //# sourceMappingURL=token.d.ts.map

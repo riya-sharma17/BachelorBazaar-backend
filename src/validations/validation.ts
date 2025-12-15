@@ -1,0 +1,48 @@
+import type { Request, Response, NextFunction } from "express";
+import type { ObjectSchema } from "joi";
+
+export const validateRequest = (schema: ObjectSchema) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      let result = await schema.validateAsync(req.body);
+      req.body = result;
+      next();
+    } catch (error: any) {
+      return res.status(400).json({
+        error: error.details[0]?.message,
+      });
+    }
+  };
+};
+
+export const validateQuery = (schema: ObjectSchema) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      let result = await schema.validateAsync(req.query);
+      req.query = result;
+      next();
+    } catch (error: any) {
+      return res.status(400).json({
+        error: error?.details
+          ? error?.details[0]?.message
+          : "something went wrong",
+      });
+    }
+  };
+};
+
+export const validateParams = (schema: ObjectSchema) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      let result = await schema.validateAsync(req.params);
+      req.params = result;
+      next();
+    } catch (error: any) {
+      return res.status(400).json({
+        error: error?.details
+          ? error?.details[0]?.message
+          : "something went wrong",
+      });
+    }
+  };
+};

@@ -60,7 +60,7 @@ const startServer = async () => {
         await (0, connection_1.connectDB)();
         await myApp.initialize();
         server.listen(port, () => {
-            console.log(` Server running at mongodb://localhost:27017/BachelorBazaar${port}`);
+            console.log(` Server running at ${port}`);
         });
     }
     catch (err) {

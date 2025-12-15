@@ -22,10 +22,12 @@
   "homepage": "https://github.com/riya-sharma17/BachelorBazaar-backend#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "crons": "^1.1.1-alpha.0",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "google-auth-library": "^10.5.0",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongod": "^2.0.0",

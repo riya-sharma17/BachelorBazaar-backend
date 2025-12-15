@@ -1,11 +1,13 @@
 import express from "express";
-import * as dotenv from "dotenv";
 import cors from "cors";
 import http from "http";
 import { connectDB } from "./src/databases/connection";
 import { App } from "./src/app";
 
-dotenv.config();
+if (!process.env.RAILWAY_ENVIRONMENT) {
+  require("dotenv").config();
+}
+
 
 const port = Number(process.env.PORT) || 4001;
 const base_url = process.env.BASE_URL || "";
@@ -35,7 +37,7 @@ const startServer = async () => {
         });
     } catch (err) {
         console.error("Server startup failed:", err);
-        process.exit(1);
+         console.error(err);
     }
 };
 

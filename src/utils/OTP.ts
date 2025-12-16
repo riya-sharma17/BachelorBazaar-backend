@@ -62,7 +62,7 @@ export const sendOTP = async (email: string, OTP: string) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM, // "BachelorBazaar <bachelorbazaar1@gmail.com>"
+    from: "BachelorBazaar <bachelorbazaar1@gmail.com>",
     to: email,
     subject: "Your OTP",
     text: `Your OTP is ${OTP}. It is valid for 2 minutes.`,

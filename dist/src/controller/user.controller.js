@@ -1,14 +1,4 @@
 "use strict";
-// import { Request, Response, NextFunction } from "express";
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-// import * as dotenv from "dotenv";
-// import moment from "moment";
-// import userModel from "../model/user.model";
-// import { loginType } from "../utils/enum";
-// import { generateOTP, sendOTP } from "../utils/OTP";
-// import { SUCCESS_RESPONSE, ERROR_RESPONSE } from "../utils/message";
-// import { OAuth2Client } from 'google-auth-library';
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -72,29 +62,18 @@ const sanitizeUser = (user) => {
     return obj;
 };
 const generateAndSendOTP = async (user) => {
-    try {
-        const otp = (0, OTP_1.generateOTP)();
-        const otpExpires = (0, moment_1.default)().add(2, "minutes").toDate();
-        user.OTP = otp;
-        user.otpExpires = otpExpires;
-        await user.save();
-        await (0, OTP_1.sendOTP)(user.email, otp);
-        console.log(`OTP sent to ${user.email}`);
-        return true;
-    }
-    catch (error) {
-        console.error("OTP generation/send failed:", error);
-        throw new Error("Failed to send OTP");
-    }
+    const otp = (0, OTP_1.generateOTP)();
+    const otpExpires = (0, moment_1.default)().add(2, "minutes").toDate();
+    user.OTP = otp;
+    user.otpExpires = otpExpires;
+    await user.save();
+    (0, OTP_1.sendOTP)(user.email, otp).catch(err => {
+        console.error("OTP email failed:", err);
+    });
 };
 const signup = async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
-        if (!name || !email || !password) {
-            return res.status(400).json({
-                message: "Name, email, and password are required",
-            });
-        }
         const exists = await user_model_1.default.findOne({ email });
         if (exists) {
             return res.status(400).json({
@@ -128,8 +107,8 @@ const sendOtp = async (req, res, next) => {
         }
         let user = await user_model_1.default.findOne({ email });
         if (!user) {
-            return res.status(200).json({
-                message: message_1.SUCCESS_RESPONSE.OTP_SENT,
+            return res.status(404).json({
+                message: message_1.ERROR_RESPONSE.USER_NOT_FOUND,
             });
         }
         await generateAndSendOTP(user);
@@ -138,22 +117,14 @@ const sendOtp = async (req, res, next) => {
         });
     }
     catch (error) {
-        console.error("Send OTP error:", error);
-        return res.status(500).json({
-            message: "Failed to send OTP. Please try again.",
-        });
+        next(error);
     }
 };
 exports.sendOtp = sendOtp;
 const verifyOtp = async (req, res, next) => {
     try {
         const { email, otp } = req.body;
-        if (!email || !otp) {
-            return res.status(400).json({
-                message: "Email and OTP are required",
-            });
-        }
-        const user = await user_model_1.default.findOne({ email });
+        const user = await user_model_1.default.findOne({ email: email });
         if (!user) {
             return res.status(400).json({
                 message: message_1.ERROR_RESPONSE.EMAIL_NOT_EXISTS,
@@ -169,9 +140,6 @@ const verifyOtp = async (req, res, next) => {
                 message: message_1.ERROR_RESPONSE.INVALID_OR_EXPIRED_OTP,
             });
         }
-        // Clear OTP after successful verification
-        // user.OTP = undefined;
-        // user.otpExpires = undefined;
         await user.save();
         return res.status(200).json({
             message: message_1.SUCCESS_RESPONSE.OTP_VERIFIED,
@@ -186,17 +154,13 @@ exports.verifyOtp = verifyOtp;
 const emailLogin = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        const user = await user_model_1.default.findOne({ email });
+        const user = await user_model_1.default.findOne({ email: email });
         if (!user || !user.password) {
-            return res.status(400).json({
-                message: message_1.ERROR_RESPONSE.INVALID_CREDENTIALS
-            });
+            return res.status(400).json({ message: message_1.ERROR_RESPONSE.INVALID_CREDENTIALS });
         }
         const isMatch = await bcryptjs_1.default.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({
-                message: message_1.ERROR_RESPONSE.INVALID_CREDENTIALS
-            });
+            return res.status(400).json({ message: message_1.ERROR_RESPONSE.INVALID_CREDENTIALS });
         }
         const token = generateToken(user);
         return res.status(200).json({
@@ -237,11 +201,13 @@ const googleLogin = async (req, res, next) => {
                 name,
                 email,
                 loginType: enum_1.loginType.GOOGLE,
-                socialIds: [{
+                socialIds: [
+                    {
                         id: googleId,
                         type: enum_1.loginType.GOOGLE,
                         email,
-                    }],
+                    },
+                ],
             });
         }
         else {
@@ -277,9 +243,10 @@ const forgotPassword = async (req, res, next) => {
                 message: message_1.ERROR_RESPONSE.EMAIL_REQUIRED,
             });
         }
-        const user = await user_model_1.default.findOne({ email });
+        const user = await user_model_1.default.findOne({
+            email: email,
+        });
         if (!user) {
-            // Security: don't reveal if user exists
             return res.status(200).json({
                 message: message_1.SUCCESS_RESPONSE.OTP_SENT,
             });
@@ -295,30 +262,23 @@ const forgotPassword = async (req, res, next) => {
         });
     }
     catch (error) {
-        console.error("Forgot password error:", error);
-        return res.status(500).json({
-            message: "Failed to send reset OTP",
-        });
+        next(error);
     }
 };
 exports.forgotPassword = forgotPassword;
 const resetPassword = async (req, res, next) => {
     try {
         const { email, otp, newPassword } = req.body;
-        if (!email || !otp || !newPassword) {
-            return res.status(400).json({
-                message: "Email, OTP, and new password required",
-            });
-        }
         const user = await user_model_1.default.findOne({ email });
-        if (!user || user.OTP !== otp || !user.otpExpires || (0, moment_1.default)().isAfter(user.otpExpires)) {
+        if (!user ||
+            user.OTP !== otp ||
+            !user.otpExpires ||
+            (0, moment_1.default)().isAfter(user.otpExpires)) {
             return res.status(400).json({
                 message: message_1.ERROR_RESPONSE.INVALID_OR_EXPIRED_OTP,
             });
         }
         user.password = await bcryptjs_1.default.hash(newPassword, 10);
-        // user.OTP = undefined;
-        // user.otpExpires = undefined;
         await user.save();
         return res.status(200).json({
             message: message_1.SUCCESS_RESPONSE.PASSWORD_RESET,

@@ -55,8 +55,9 @@ const sendOTP = async (email, OTP) => {
             user: process.env.EMAIL_SERVICE_USER,
             pass: process.env.EMAIL_SERVICE_PASS,
         },
+        connectionTimeout: 5000,
+        socketTimeout: 5000,
     });
-    await transporter.verify();
     const mailOptions = {
         // from: process.env.EMAIL_SERVICE_USER,
         from: `"BachelorBazaar" <${process.env.EMAIL_SERVICE_USER}>`,

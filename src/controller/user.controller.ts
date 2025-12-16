@@ -90,7 +90,7 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction) =
         if (!user) {
             return res.status(404).json({
                 message: ERROR_RESPONSE.USER_NOT_FOUND,
-            });
+            }); 
         }
 
         await generateAndSendOTP(user);

@@ -581,7 +581,6 @@ export const emailLogin = async (req: Request, res: Response, next: NextFunction
     }
 };
 
-// Google Login (unchanged - already good)
 export const googleLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { idToken } = req.body;
@@ -712,6 +711,84 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
         return res.status(200).json({
             message: SUCCESS_RESPONSE.PASSWORD_RESET,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+export const changePassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = res.locals.user._id;
+        const { oldPassword, newPassword } = req.body;
+
+        const user = await userModel.findById(userId);
+        if (!user || !user.password) {
+            return res.status(404).json({
+                message: ERROR_RESPONSE.USER_NOT_FOUND,
+            });
+        }
+
+        const match = await bcrypt.compare(oldPassword, user.password);
+        if (!match) {
+            return res.status(400).json({
+                message: ERROR_RESPONSE.OLD_PASSWORD_INCORRECT,
+            });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        return res.status(200).json({
+            message: SUCCESS_RESPONSE.PASSWORD_CHANGED,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const listUsers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        let { page = 1, limit = 10, search = "" } = req.query;
+
+        page = Number(page);
+        limit = Number(limit);
+
+        const query: any = {};
+
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+                { mobileNumber: { $regex: search, $options: "i" } },
+            ];
+        }
+
+        const totalUsers = await userModel.countDocuments(query);
+
+        const users = await userModel
+            .find(query)
+            .select("-password -OTP -otpExpires")
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return res.status(200).json({
+            message: SUCCESS_RESPONSE.USERS_FETCHED,
+            data: {
+                total: totalUsers,
+                page,
+                limit,
+                totalPages: Math.ceil(totalUsers / limit),
+                nextHit: page < Math.ceil(totalUsers / limit),
+                users,
+            },
         });
     } catch (error) {
         next(error);

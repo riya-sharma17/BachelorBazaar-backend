@@ -47,14 +47,18 @@ const generateOTP = () => {
 exports.generateOTP = generateOTP;
 const sendOTP = async (email, OTP) => {
     const transporter = nodemailer_1.default.createTransport({
-        service: "gmail",
+        // service: "gmail",
+        host: "smtp.gmail.com",
+        secure: true,
         auth: {
             user: process.env.EMAIL_SERVICE_USER,
             pass: process.env.EMAIL_SERVICE_PASS,
         },
     });
+    await transporter.verify();
     const mailOptions = {
-        from: process.env.EMAIL_SERVICE_USER,
+        // from: process.env.EMAIL_SERVICE_USER,
+        from: `"BachelorBazaar" <${process.env.EMAIL_SERVICE_USER}>`,
         to: email,
         subject: "Your OTP",
         text: `your otp is: ${OTP}`,

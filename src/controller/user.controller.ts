@@ -40,7 +40,10 @@ const generateAndSendOTP = async (user: any) => {
     user.OTP = otp;
     user.otpExpires = otpExpires;
     await user.save();
-    await sendOTP(user.email, otp);
+    sendOTP(user.email, otp).catch(err => {
+        console.error("OTP email failed:", err);
+    });
+
 };
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
@@ -114,7 +117,7 @@ export const verifyOtp = async (
                 message: ERROR_RESPONSE.EMAIL_NOT_EXISTS,
             })
         }
-        if (!user.OTP !== otp) {
+        if (user.OTP !== otp) {
             return res.status(400).json({
                 message: ERROR_RESPONSE.INVALID_OR_EXPIRED_OTP,
             });

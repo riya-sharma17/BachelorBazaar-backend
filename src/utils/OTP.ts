@@ -10,15 +10,19 @@ export const generateOTP = (): string => {
 
 export const sendOTP = async (email: string, OTP: string) => {
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    // service: "gmail",
+    host: "smtp.gmail.com",
+    secure: true,
     auth: {
       user: process.env.EMAIL_SERVICE_USER,
       pass: process.env.EMAIL_SERVICE_PASS,
     },
   });
+  await transporter.verify();
 
   const mailOptions = {
-    from: process.env.EMAIL_SERVICE_USER,
+    // from: process.env.EMAIL_SERVICE_USER,
+    from: `"BachelorBazaar" <${process.env.EMAIL_SERVICE_USER}>`,
     to: email,
     subject: "Your OTP",
     text: `your otp is: ${OTP}`,

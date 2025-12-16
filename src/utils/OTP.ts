@@ -12,14 +12,15 @@ export const sendOTP = async (email: string, OTP: string) => {
   const transporter = nodemailer.createTransport({
     // service: "gmail",
     host: "smtp.gmail.com",
-      port: 465,
+    port: 465,
     secure: true,
     auth: {
       user: process.env.EMAIL_SERVICE_USER,
       pass: process.env.EMAIL_SERVICE_PASS,
     },
+     connectionTimeout: 5000,
+    socketTimeout: 5000,
   });
-  await transporter.verify();
 
   const mailOptions = {
     // from: process.env.EMAIL_SERVICE_USER,

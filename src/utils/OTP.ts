@@ -18,8 +18,6 @@
 //       user: process.env.EMAIL_SERVICE_USER,
 //       pass: process.env.EMAIL_SERVICE_PASS,
 //     },
-//      connectionTimeout: 5000,
-//     socketTimeout: 5000,
 //   });
 
 //   const mailOptions = {
@@ -39,39 +37,43 @@
 //     throw error;
 //   }
 // };
-
-
-import { Resend } from 'resend';
+import nodemailer from "nodemailer";
 import * as dotenv from "dotenv";
-
 dotenv.config();
-
-// Initialize Resend with your API Key
-const resend = new Resend(process.env.RESEND_API_KEY);
-
+/**
+ * Generate 4-digit OTP
+ */
 export const generateOTP = (): string => {
   return Math.floor(1000 + Math.random() * 9000).toString();
 };
 
+/**
+ * Send OTP email using Brevo SMTP
+ */
 export const sendOTP = async (email: string, OTP: string) => {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: false, // MUST be false for port 587
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM, // "BachelorBazaar <bachelorbazaar1@gmail.com>"
+    to: email,
+    subject: "Your OTP",
+    text: `Your OTP is ${OTP}. It is valid for 2 minutes.`,
+  };
+
   try {
-    const { data, error } = await resend.emails.send({
-      // Use 'onboarding@resend.dev' for testing or verify your own domain on Resend
-      from: 'BachelorBazaar <onboarding@resend.dev>',
-      to: email,
-      subject: 'Your Verification Code',
-      text: `Your OTP is: ${OTP}. It expires in 2 minutes.`,
-    });
-
-    if (error) {
-      console.error("Resend API Error:", error);
-      throw new Error("Failed to send email via API");
-    }
-
-    console.log("Email sent successfully via Resend:", data?.id);
-    return data;
+    const info = await transporter.sendMail(mailOptions);
+    console.log("OTP email sent:", info.messageId);
+    return info;
   } catch (error) {
-    console.error("sendOTP helper error:", error);
+    console.error("Failed to send OTP email:", error);
     throw error;
   }
 };

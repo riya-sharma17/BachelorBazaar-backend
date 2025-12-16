@@ -45,23 +45,18 @@ const sanitizeUser = (user: any) => {
 //     });
 
 // };
-
 const generateAndSendOTP = async (user: any) => {
     const otp = generateOTP();
     const otpExpires = moment().add(2, "minutes").toDate();
-    
+
     user.OTP = otp;
     user.otpExpires = otpExpires;
-    await user.save();
+    await user.save(); 
 
-    // CRITICAL: You must await this call in production
-    try {
-        await sendOTP(user.email, otp);
-        console.log(`OTP ${otp} successfully dispatched to ${user.email}`);
-    } catch (err) {
-        console.error("Disruption in OTP delivery:", err);
-        // Optional: you might want to throw here to inform the user
-    }
+  
+    sendOTP(user.email, otp).catch(err => {
+        console.error("OTP email failed:", err);
+    });
 };
 
 

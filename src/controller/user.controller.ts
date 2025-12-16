@@ -34,17 +34,36 @@ const sanitizeUser = (user: any) => {
     return obj;
 };
 
+// const generateAndSendOTP = async (user: any) => {
+//     const otp = generateOTP();
+//     const otpExpires = moment().add(2, "minutes").toDate();
+//     user.OTP = otp;
+//     user.otpExpires = otpExpires;
+//     await user.save();
+//     sendOTP(user.email, otp).catch(err => {
+//         console.error("OTP email failed:", err);
+//     });
+
+// };
+
 const generateAndSendOTP = async (user: any) => {
     const otp = generateOTP();
     const otpExpires = moment().add(2, "minutes").toDate();
+    
     user.OTP = otp;
     user.otpExpires = otpExpires;
     await user.save();
-    sendOTP(user.email, otp).catch(err => {
-        console.error("OTP email failed:", err);
-    });
 
+    // CRITICAL: You must await this call in production
+    try {
+        await sendOTP(user.email, otp);
+        console.log(`OTP ${otp} successfully dispatched to ${user.email}`);
+    } catch (err) {
+        console.error("Disruption in OTP delivery:", err);
+        // Optional: you might want to throw here to inform the user
+    }
 };
+
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -76,23 +95,47 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
     }
 };
 
+// export const sendOtp = async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const { email } = req.body;
+
+//         if (!email) {
+//             return res.status(400).json({
+//                 message: ERROR_RESPONSE.EMAIL_REQUIRED,
+//             });
+//         }
+
+//         let user = await userModel.findOne({ email });
+//         if (!user) {
+//             return res.status(404).json({
+//                 message: ERROR_RESPONSE.USER_NOT_FOUND,
+//             }); 
+//         }
+
+//         await generateAndSendOTP(user);
+
+//         return res.status(200).json({
+//             message: SUCCESS_RESPONSE.OTP_SENT,
+//         });
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
 export const sendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email } = req.body;
 
         if (!email) {
-            return res.status(400).json({
-                message: ERROR_RESPONSE.EMAIL_REQUIRED,
-            });
+            return res.status(400).json({ message: ERROR_RESPONSE.EMAIL_REQUIRED });
         }
 
         let user = await userModel.findOne({ email });
         if (!user) {
-            return res.status(404).json({
-                message: ERROR_RESPONSE.USER_NOT_FOUND,
-            }); 
+            return res.status(404).json({ message: ERROR_RESPONSE.USER_NOT_FOUND }); 
         }
 
+        // Wait for the OTP to be generated, saved, and sent via HTTP API
         await generateAndSendOTP(user);
 
         return res.status(200).json({

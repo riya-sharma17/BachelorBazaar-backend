@@ -53,6 +53,8 @@ const sendOTP = async (email, OTP) => {
             pass: process.env.EMAIL_APP_PASSWORD,
         },
     });
+    console.log("email--------------------------------------", process.env.EMAIL_SERVICE_USER);
+    console.log("password-------------------------------------", process.env.EMAIL_APP_PASSWORD);
     const mailOptions = {
         from: process.env.EMAIL_SERVICE_USER,
         to: email,

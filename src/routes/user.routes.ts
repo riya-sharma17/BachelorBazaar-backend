@@ -66,9 +66,10 @@ router.post(
 );
 
 router.get(
-    "/users",
-    validateQuery(listUsersValidation),
-    listUsers
+  "/users",
+  validateQuery(listUsersValidation),
+  listUsers
 );
+
 
 export default router;

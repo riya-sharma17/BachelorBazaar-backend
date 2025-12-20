@@ -51,9 +51,9 @@ const generateAndSendOTP = async (user: any) => {
 
     user.OTP = otp;
     user.otpExpires = otpExpires;
-    await user.save(); 
+    await user.save();
 
-  
+
     sendOTP(user.email, otp).catch(err => {
         console.error("OTP email failed:", err);
     });
@@ -127,7 +127,7 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction) =
 
         let user = await userModel.findOne({ email });
         if (!user) {
-            return res.status(404).json({ message: ERROR_RESPONSE.USER_NOT_FOUND }); 
+            return res.status(404).json({ message: ERROR_RESPONSE.USER_NOT_FOUND });
         }
 
         // Wait for the OTP to be generated, saved, and sent via HTTP API

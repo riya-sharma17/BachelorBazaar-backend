@@ -1,6 +1,4 @@
 "use strict";
-// import * as dotenv from "dotenv";
-// import nodemailer from "nodemailer";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -39,70 +37,31 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendOTP = exports.generateOTP = void 0;
-// dotenv.config();
-// export const generateOTP = (): string => {
-//   const otp = Math.floor(1000 + Math.random() * 9000);
-//   return otp.toString();
-// };
-// export const sendOTP = async (email: string, OTP: string) => {
-//   const transporter = nodemailer.createTransport({
-//     // service: "gmail",
-//     host: "smtp.gmail.com",
-//     port: 465,
-//     secure: true,
-//     auth: {
-//       user: process.env.EMAIL_SERVICE_USER,
-//       pass: process.env.EMAIL_SERVICE_PASS,
-//     },
-//   });
-//   const mailOptions = {
-//     // from: process.env.EMAIL_SERVICE_USER,
-//     from: `"BachelorBazaar" <${process.env.EMAIL_SERVICE_USER}>`,
-//     to: email,
-//     subject: "Your OTP",
-//     text: `your otp is: ${OTP}`,
-//   };
-//   try {
-//     const info = await transporter.sendMail(mailOptions);
-//     console.log("Email sent:", info.response);
-//     return info;
-//   } catch (error) {
-//     console.error("Failed to send OTP email:", error);
-//     throw error;
-//   }
-// };
-const nodemailer_1 = __importDefault(require("nodemailer"));
 const dotenv = __importStar(require("dotenv"));
+const nodemailer_1 = __importDefault(require("nodemailer"));
+const crypto_1 = __importDefault(require("crypto"));
 dotenv.config();
-/**
- * Generate 4-digit OTP
- */
 const generateOTP = () => {
-    return Math.floor(1000 + Math.random() * 9000).toString();
+    return crypto_1.default.randomInt(100000, 999999).toString();
 };
 exports.generateOTP = generateOTP;
-/**
- * Send OTP email using Brevo SMTP
- */
 const sendOTP = async (email, OTP) => {
     const transporter = nodemailer_1.default.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
-        secure: false, // MUST be false for port 587
+        service: "gmail",
         auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
+            user: process.env.EMAIL_SERVICE_USER,
+            pass: process.env.EMAIL_SERVICE_PASS,
         },
     });
     const mailOptions = {
-        from: "BachelorBazaar <bachelorbazaar1@gmail.com>",
+        from: process.env.EMAIL_SERVICE_USER,
         to: email,
         subject: "Your OTP",
-        text: `Your OTP is ${OTP}. It is valid for 2 minutes.`,
+        text: `your otp is: ${OTP}`,
     };
     try {
         const info = await transporter.sendMail(mailOptions);
-        console.log("OTP email sent:", info.messageId);
+        console.log("Email sent:", info.response);
         return info;
     }
     catch (error) {

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import * as dotenv from "dotenv";
 import moment from "moment";
 import userModel from "../model/user.model";
-import { loginType } from "../utils/enum";
+import { loginType as loginTypeEnum } from "../utils/enum";
 import { generateOTP, sendOTP } from "../utils/OTP";
 import { SUCCESS_RESPONSE, ERROR_RESPONSE } from "../utils/message";
 import { OAuth2Client } from 'google-auth-library';
@@ -34,17 +34,6 @@ const sanitizeUser = (user: any) => {
     return obj;
 };
 
-// const generateAndSendOTP = async (user: any) => {
-//     const otp = generateOTP();
-//     const otpExpires = moment().add(2, "minutes").toDate();
-//     user.OTP = otp;
-//     user.otpExpires = otpExpires;
-//     await user.save();
-//     sendOTP(user.email, otp).catch(err => {
-//         console.error("OTP email failed:", err);
-//     });
-
-// };
 const generateAndSendOTP = async (user: any) => {
     const otp = generateOTP();
     const otpExpires = moment().add(2, "minutes").toDate();
@@ -53,85 +42,85 @@ const generateAndSendOTP = async (user: any) => {
     user.otpExpires = otpExpires;
     await user.save();
 
-
-    sendOTP(user.email, otp).catch(err => {
-        console.error("OTP email failed:", err);
-    });
+    sendOTP(user.email, otp);
 };
-
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, email, password } = req.body;
+        const { loginType, name, email, mobileNumber, password } = req.body;
 
-        const exists = await userModel.findOne({ email });
-        if (exists) {
-            return res.status(400).json({
-                message: ERROR_RESPONSE.EMAIL_ALREADY_REGISTERED,
+        if (!loginType) {
+            return res.status(400).json({ message: "loginType is required" });
+        }
+
+        if (loginType === loginTypeEnum.EMAIL) {
+
+            const exists = await userModel.findOne({ email });
+            if (exists) {
+                return res.status(400).json({ message: ERROR_RESPONSE.EMAIL_ALREADY_REGISTERED });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            const user = await userModel.create({
+                name,
+                email,
+                password: hashedPassword,
+                loginType,
+            });
+
+            return res.status(201).json({
+                message: SUCCESS_RESPONSE.USER_REGISTERED,
+                data: sanitizeUser(user),
             });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        if (loginType === loginTypeEnum.MOBILE) {
 
-        const user = await userModel.create({
-            name,
-            email,
-            password: hashedPassword,
-        });
+            const exists = await userModel.findOne({ mobileNumber });
+            if (exists) {
+                return res.status(400).json({ message: "Mobile already registered" });
+            }
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const user = await userModel.create({
+                name,
+                mobileNumber,
+                loginType,
+                password: hashedPassword,
+            });
 
-        return res.status(201).json({
-            message: SUCCESS_RESPONSE.USER_REGISTERED,
-            code: 201,
-            data: sanitizeUser(user),
-        });
+            return res.status(201).json({
+                message: SUCCESS_RESPONSE.USER_REGISTERED,
+                data: sanitizeUser(user),
+            });
+        }
 
+        return res.status(400).json({ message: "Invalid loginType" });
     } catch (error) {
         next(error);
     }
 };
 
-// export const sendOtp = async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const { email } = req.body;
-
-//         if (!email) {
-//             return res.status(400).json({
-//                 message: ERROR_RESPONSE.EMAIL_REQUIRED,
-//             });
-//         }
-
-//         let user = await userModel.findOne({ email });
-//         if (!user) {
-//             return res.status(404).json({
-//                 message: ERROR_RESPONSE.USER_NOT_FOUND,
-//             }); 
-//         }
-
-//         await generateAndSendOTP(user);
-
-//         return res.status(200).json({
-//             message: SUCCESS_RESPONSE.OTP_SENT,
-//         });
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
 export const sendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { email } = req.body;
+        const { loginType, email, mobileNumber } = req.body;
 
-        if (!email) {
-            return res.status(400).json({ message: ERROR_RESPONSE.EMAIL_REQUIRED });
-        }
+        const otp = "0000";
+        const otpExpires = moment().add(10, "minutes").toDate();
 
-        let user = await userModel.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: ERROR_RESPONSE.USER_NOT_FOUND });
-        }
-
-        // Wait for the OTP to be generated, saved, and sent via HTTP API
-        await generateAndSendOTP(user);
+        await userModel.findOneAndUpdate(
+            loginType === loginTypeEnum.EMAIL
+                ? { email }
+                : { mobileNumber },
+            {
+                OTP: otp,
+                otpExpires,
+                loginType,
+                email,
+                mobileNumber,
+            },
+            { upsert: true, new: true }
+        );
 
         return res.status(200).json({
             message: SUCCESS_RESPONSE.OTP_SENT,
@@ -141,61 +130,60 @@ export const sendOtp = async (req: Request, res: Response, next: NextFunction) =
     }
 };
 
-export const verifyOtp = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { email, otp } = req.body;
+        const { loginType, email, mobileNumber, otp } = req.body;
 
-        const user = await userModel.findOne({ email: email });
-        if (!user) {
-            return res.status(400).json({
-                message: ERROR_RESPONSE.EMAIL_NOT_EXISTS,
-            })
-        }
-        if (user.OTP !== otp) {
+        const user = await userModel.findOne(
+            loginType === loginTypeEnum.EMAIL
+                ? { email }
+                : { mobileNumber }
+        );
+
+        if (
+            !user ||
+            user.OTP !== otp ||
+            !user.otpExpires ||
+            moment().isAfter(user.otpExpires)
+        ) {
             return res.status(400).json({
                 message: ERROR_RESPONSE.INVALID_OR_EXPIRED_OTP,
             });
         }
-
-        if (!user.otpExpires || moment().isAfter(user.otpExpires)) {
-            return res.status(400).json({
-                message: ERROR_RESPONSE.INVALID_OR_EXPIRED_OTP,
-            });
-        }
-        await user.save();
 
         return res.status(200).json({
             message: SUCCESS_RESPONSE.OTP_VERIFIED,
-            data: sanitizeUser(user),
         });
     } catch (error) {
         next(error);
     }
 };
 
-export const emailLogin = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { email, password } = req.body;
+        const { loginType, email, mobileNumber, password } = req.body;
 
-        const user = await userModel.findOne({ email: email });
+        const user = await userModel.findOne(
+            loginType === loginTypeEnum.EMAIL
+                ? { email }
+                : { mobileNumber }
+        );
+
         if (!user || !user.password) {
-            return res.status(400).json({ message: ERROR_RESPONSE.INVALID_CREDENTIALS });
+            return res.status(400).json({
+                message: ERROR_RESPONSE.INVALID_CREDENTIALS,
+            });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: ERROR_RESPONSE.INVALID_CREDENTIALS });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.status(400).json({
+                message: ERROR_RESPONSE.INVALID_CREDENTIALS,
+            });
         }
 
         const token = generateToken(user);
+
         return res.status(200).json({
             message: SUCCESS_RESPONSE.LOGIN_SUCCESS,
             token,
@@ -244,25 +232,25 @@ export const googleLogin = async (
             user = await userModel.create({
                 name,
                 email,
-                loginType: loginType.GOOGLE,
+                loginType: loginTypeEnum.GOOGLE,
                 socialIds: [
                     {
                         id: googleId,
-                        type: loginType.GOOGLE,
+                        type: loginTypeEnum.GOOGLE,
                         email,
                     },
                 ],
             });
         } else {
             const alreadyLinked = user.socialIds?.some(
-                (s) => s.id === googleId && s.type === loginType.GOOGLE
+                (s) => s.id === googleId && s.type === loginTypeEnum.GOOGLE
             );
 
             if (!alreadyLinked) {
                 user.socialIds = user.socialIds || [];
                 user.socialIds.push({
                     id: googleId,
-                    type: loginType.GOOGLE,
+                    type: loginTypeEnum.GOOGLE,
                     email,
                 });
                 await user.save();
@@ -405,7 +393,6 @@ export const listUsers = async (
 
         const users = await userModel
             .find(query)
-            .select("-password -OTP -otpExpires")
             .skip((page - 1) * limit)
             .limit(limit)
             .sort({ createdAt: -1 })

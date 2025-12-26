@@ -8,9 +8,15 @@ const userSchema: Schema<IUser> = new Schema(
             type: String,
             required: false,
         },
+        
+        loginType: {
+            type: String,
+            enum: Object.values(loginType),
+            required: true,
+        },
+
         email: {
             type: String,
-            required: true,
             unique: true,
         },
 

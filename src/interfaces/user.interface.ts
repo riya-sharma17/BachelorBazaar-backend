@@ -11,6 +11,7 @@ export interface IUser extends Document {
     password: string;
     mobileNumber: string;
     address: string;
+    loginType: loginType;
     email: string;
     OTP?: string;
     otpExpires?: Date;

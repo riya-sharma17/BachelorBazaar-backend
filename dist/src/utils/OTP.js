@@ -1,4 +1,7 @@
 "use strict";
+// import * as dotenv from "dotenv";
+// import nodemailer from "nodemailer";
+// import crypto from "crypto";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -32,44 +35,44 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendOTP = exports.generateOTP = void 0;
+// dotenv.config();
+// export const generateOTP = (): string => {
+//   return crypto.randomInt(100000, 999999).toString();
+// };
+// export const sendOTP = async (email: string, OTP: string) => {
+//   const transporter = nodemailer.createTransport({
+//     service: "gmail",
+//     auth: {
+//       user: process.env.EMAIL_SERVICE_USER,
+//       pass: process.env.EMAIL_APP_PASSWORD,
+//     },
+//   });
+//   const mailOptions = {
+//     from: process.env.EMAIL_SERVICE_USER,
+//     to: email,
+//     subject: "Your OTP",
+//     text: `your otp is: ${OTP}`,
+//   };
+//   try {
+//     const info = await transporter.sendMail(mailOptions);
+//     console.log("Email sent:", info.response);
+//     return info;
+//   } catch (error) {
+//     console.error("Failed to send OTP email:", error);
+//     throw error;
+//   }
+// };
 const dotenv = __importStar(require("dotenv"));
-const nodemailer_1 = __importDefault(require("nodemailer"));
-const crypto_1 = __importDefault(require("crypto"));
 dotenv.config();
 const generateOTP = () => {
-    return crypto_1.default.randomInt(100000, 999999).toString();
+    return "0000";
 };
 exports.generateOTP = generateOTP;
-const sendOTP = async (email, OTP) => {
-    const transporter = nodemailer_1.default.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_SERVICE_USER,
-            pass: process.env.EMAIL_APP_PASSWORD,
-        },
-    });
-    console.log("email--------------------------------------", process.env.EMAIL_SERVICE_USER);
-    console.log("password-------------------------------------", process.env.EMAIL_APP_PASSWORD);
-    const mailOptions = {
-        from: process.env.EMAIL_SERVICE_USER,
-        to: email,
-        subject: "Your OTP",
-        text: `your otp is: ${OTP}`,
-    };
-    try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent:", info.response);
-        return info;
-    }
-    catch (error) {
-        console.error("Failed to send OTP email:", error);
-        throw error;
-    }
+const sendOTP = async (_email, _OTP) => {
+    console.log("OTP bypassed. OTP = 0000");
+    return;
 };
 exports.sendOTP = sendOTP;
 //# sourceMappingURL=OTP.js.map

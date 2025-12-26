@@ -2,13 +2,13 @@ import express from "express";
 
 import {
     signup,
-    emailLogin,
     sendOtp,
     verifyOtp,
     googleLogin,
     forgotPassword,
     resetPassword,
     changePassword,
+    login,
     listUsers,
 } from "../controller/user.controller";
 
@@ -21,22 +21,21 @@ import {
 
 import {
     signupValidation,
-    emailLoginValidation,
+    loginValidation,
     sendOtpValidation,
-    verifyOtpValidation,
+    verifySignupOtpValidation,
     googleLoginValidation,
     forgotPasswordValidation,
     resetPasswordValidation,
     changePasswordValidation,
     listUsersValidation,
 } from "../validations/user.validation";
-import { verify } from "jsonwebtoken";
 
 
 const router = express.Router();
 
 router.post("/signup", validateRequest(signupValidation), signup);
-router.post("/email-login", validateRequest(emailLoginValidation), emailLogin);
+router.post("/login", validateRequest(loginValidation), login);
 router.post(
     "/login/google",
     validateRequest(googleLoginValidation),
@@ -44,7 +43,7 @@ router.post(
 );
 
 router.post("/send-otp", validateRequest(sendOtpValidation), sendOtp);
-router.post("/verify-otp", validateRequest(verifyOtpValidation), verifyOtp);
+router.post("/verify-otp", validateRequest(verifySignupOtpValidation), verifyOtp);
 
 router.post(
     "/forgot-password",
@@ -66,9 +65,9 @@ router.post(
 );
 
 router.get(
-  "/users",
-  validateQuery(listUsersValidation),
-  listUsers
+    "/users",
+    validateQuery(listUsersValidation),
+    listUsers
 );
 
 

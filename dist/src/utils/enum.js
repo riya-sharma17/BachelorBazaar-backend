@@ -5,6 +5,7 @@ var loginType;
 (function (loginType) {
     loginType["EMAIL"] = "email";
     loginType["GOOGLE"] = "google";
+    loginType["MOBILE"] = "mobile";
 })(loginType || (exports.loginType = loginType = {}));
 ;
 var Role;

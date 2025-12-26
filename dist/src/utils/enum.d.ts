@@ -1,6 +1,7 @@
 export declare enum loginType {
     EMAIL = "email",
-    GOOGLE = "google"
+    GOOGLE = "google",
+    MOBILE = "mobile"
 }
 export declare enum Role {
     USER = "0",

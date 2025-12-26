@@ -2,6 +2,7 @@
 export enum loginType {
   EMAIL = "email",
   GOOGLE = "google",
+  MOBILE = "mobile"
 };
 
 export enum Role {

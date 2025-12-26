@@ -40,9 +40,13 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: false,
     },
+    loginType: {
+        type: String,
+        enum: Object.values(enum_1.loginType),
+        required: true,
+    },
     email: {
         type: String,
-        required: true,
         unique: true,
     },
     mobileNumber: {

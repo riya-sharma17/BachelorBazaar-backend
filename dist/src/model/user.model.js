@@ -48,6 +48,8 @@ const userSchema = new mongoose_1.Schema({
     email: {
         type: String,
         unique: true,
+        sparse: true,
+        required: false,
     },
     mobileNumber: {
         type: String,

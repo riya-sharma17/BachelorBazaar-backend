@@ -79,7 +79,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 
             const exists = await userModel.findOne({ mobileNumber });
             if (exists) {
-                return res.status(400).json({ message: "Mobile already registered" });
+                return res.status(400).json({ message: ERROR_RESPONSE.MOBILE_ALREADY_REGISTERED } );
             }
             const hashedPassword = await bcrypt.hash(password, 10);
             const user = await userModel.create({
@@ -95,7 +95,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
             });
         }
 
-        return res.status(400).json({ message: "Invalid loginType" });
+        return res.status(400).json({ message: ERROR_RESPONSE.INVALID_LOGIN });
     } catch (error) {
         next(error);
     }
@@ -124,7 +124,7 @@ export const sendOtp = async (
         }
 
         const otp = "0000";
-        const otpExpires = moment().add(10, "minutes").toDate();
+        const otpExpires = moment().add(2, "minutes").toDate();
 
         user.OTP = otp;
         user.otpExpires = otpExpires;
@@ -232,7 +232,7 @@ export const googleLogin = async (
         }
 
         const googleId = payload.sub;
-        const email = payload.email.toLowerCase().trim();
+        const email = payload.email;
         const name = payload.name || email.split("@")[0];
 
         let user = await userModel.findOne({ email });

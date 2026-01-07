@@ -11,9 +11,7 @@ const email = joi_1.default.string().email().lowercase();
 const mobileNumber = joi_1.default.string().pattern(/^[0-9]{10}$/);
 const password = joi_1.default.string().min(6).max(30);
 const otp = joi_1.default.string().length(4);
-/* =========================
-   SIGNUP (OTP REQUIRED)
-========================= */
+// signup validation
 exports.signupValidation = joi_1.default.object({
     loginType: joi_1.default.string()
         .valid(enum_1.loginType.EMAIL, enum_1.loginType.MOBILE)
@@ -31,9 +29,7 @@ exports.signupValidation = joi_1.default.object({
         otherwise: joi_1.default.forbidden(),
     }),
 }).options({ abortEarly: false });
-/* =========================
-   LOGIN (PASSWORD ONLY)
-========================= */
+// login validation
 exports.loginValidation = joi_1.default.object({
     loginType: joi_1.default.string()
         .valid(enum_1.loginType.EMAIL, enum_1.loginType.MOBILE)
@@ -50,9 +46,7 @@ exports.loginValidation = joi_1.default.object({
         otherwise: joi_1.default.forbidden(),
     }),
 }).options({ abortEarly: false });
-/* =========================
-   SEND OTP (SIGNUP / RESET)
-========================= */
+// send-otp validation
 exports.sendOtpValidation = joi_1.default.object({
     loginType: joi_1.default.string()
         .valid(enum_1.loginType.EMAIL, enum_1.loginType.MOBILE)
@@ -68,9 +62,7 @@ exports.sendOtpValidation = joi_1.default.object({
         otherwise: joi_1.default.forbidden(),
     }),
 }).options({ abortEarly: false });
-/* =========================
-   VERIFY OTP (SIGNUP)
-========================= */
+// verify-otp validation
 exports.verifySignupOtpValidation = joi_1.default.object({
     loginType: joi_1.default.string()
         .valid(enum_1.loginType.EMAIL, enum_1.loginType.MOBILE)
@@ -87,15 +79,11 @@ exports.verifySignupOtpValidation = joi_1.default.object({
     }),
     otp: otp.required(),
 }).options({ abortEarly: false });
-/* =========================
-   GOOGLE LOGIN
-========================= */
+// google login validation
 exports.googleLoginValidation = joi_1.default.object({
     idToken: joi_1.default.string().required(),
 }).options({ abortEarly: false });
-/* =========================
-   FORGOT PASSWORD
-========================= */
+// forgot password validation
 exports.forgotPasswordValidation = joi_1.default.object({
     loginType: joi_1.default.string()
         .valid(enum_1.loginType.EMAIL, enum_1.loginType.MOBILE)
@@ -111,9 +99,7 @@ exports.forgotPasswordValidation = joi_1.default.object({
         otherwise: joi_1.default.forbidden(),
     }),
 }).options({ abortEarly: false });
-/* =========================
-   RESET PASSWORD
-========================= */
+// reset password validation
 exports.resetPasswordValidation = joi_1.default.object({
     loginType: joi_1.default.string()
         .valid(enum_1.loginType.EMAIL, enum_1.loginType.MOBILE)
@@ -131,16 +117,12 @@ exports.resetPasswordValidation = joi_1.default.object({
     otp: otp.required(),
     newPassword: password.required(),
 }).options({ abortEarly: false });
-/* =========================
-   CHANGE PASSWORD
-========================= */
+// change password validation
 exports.changePasswordValidation = joi_1.default.object({
     oldPassword: password.required(),
     newPassword: password.required(),
 }).options({ abortEarly: false });
-/* =========================
-   LIST USERS
-========================= */
+// user listing validation
 exports.listUsersValidation = joi_1.default.object({
     page: joi_1.default.number().integer().min(1).optional(),
     limit: joi_1.default.number().integer().min(1).max(100).optional(),

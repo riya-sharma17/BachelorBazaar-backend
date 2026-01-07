@@ -7,9 +7,7 @@ const mobileNumber = Joi.string().pattern(/^[0-9]{10}$/);
 const password = Joi.string().min(6).max(30);
 const otp = Joi.string().length(4);
 
-/* =========================
-   SIGNUP (OTP REQUIRED)
-========================= */
+// signup validation
 export const signupValidation = Joi.object({
   loginType: Joi.string()
     .valid(loginTypeEnum.EMAIL, loginTypeEnum.MOBILE)
@@ -31,9 +29,7 @@ export const signupValidation = Joi.object({
   }),
 }).options({ abortEarly: false });
 
-/* =========================
-   LOGIN (PASSWORD ONLY)
-========================= */
+// login validation
 export const loginValidation = Joi.object({
   loginType: Joi.string()
     .valid(loginTypeEnum.EMAIL, loginTypeEnum.MOBILE)
@@ -54,9 +50,7 @@ export const loginValidation = Joi.object({
   }),
 }).options({ abortEarly: false });
 
-/* =========================
-   SEND OTP (SIGNUP / RESET)
-========================= */
+// send-otp validation
 export const sendOtpValidation = Joi.object({
   loginType: Joi.string()
     .valid(loginTypeEnum.EMAIL, loginTypeEnum.MOBILE)
@@ -75,9 +69,7 @@ export const sendOtpValidation = Joi.object({
   }),
 }).options({ abortEarly: false });
 
-/* =========================
-   VERIFY OTP (SIGNUP)
-========================= */
+// verify-otp validation
 export const verifySignupOtpValidation = Joi.object({
   loginType: Joi.string()
     .valid(loginTypeEnum.EMAIL, loginTypeEnum.MOBILE)
@@ -98,16 +90,12 @@ export const verifySignupOtpValidation = Joi.object({
   otp: otp.required(),
 }).options({ abortEarly: false });
 
-/* =========================
-   GOOGLE LOGIN
-========================= */
+// google login validation
 export const googleLoginValidation = Joi.object({
   idToken: Joi.string().required(),
 }).options({ abortEarly: false });
 
-/* =========================
-   FORGOT PASSWORD
-========================= */
+// forgot password validation
 export const forgotPasswordValidation = Joi.object({
   loginType: Joi.string()
     .valid(loginTypeEnum.EMAIL, loginTypeEnum.MOBILE)
@@ -126,10 +114,7 @@ export const forgotPasswordValidation = Joi.object({
   }),
 }).options({ abortEarly: false });
 
-
-/* =========================
-   RESET PASSWORD
-========================= */
+// reset password validation
 export const resetPasswordValidation = Joi.object({
   loginType: Joi.string()
     .valid(loginTypeEnum.EMAIL, loginTypeEnum.MOBILE)
@@ -151,17 +136,13 @@ export const resetPasswordValidation = Joi.object({
   newPassword: password.required(),
 }).options({ abortEarly: false });
 
-/* =========================
-   CHANGE PASSWORD
-========================= */
+// change password validation
 export const changePasswordValidation = Joi.object({
   oldPassword: password.required(),
   newPassword: password.required(),
 }).options({ abortEarly: false });
 
-/* =========================
-   LIST USERS
-========================= */
+// user listing validation
 export const listUsersValidation = Joi.object({
   page: Joi.number().integer().min(1).optional(),
   limit: Joi.number().integer().min(1).max(100).optional(),

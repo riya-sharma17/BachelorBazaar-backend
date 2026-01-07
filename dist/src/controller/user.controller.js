@@ -95,7 +95,7 @@ const signup = async (req, res, next) => {
         if (loginType === enum_1.loginType.MOBILE) {
             const exists = await user_model_1.default.findOne({ mobileNumber });
             if (exists) {
-                return res.status(400).json({ message: "Mobile already registered" });
+                return res.status(400).json({ message: message_1.ERROR_RESPONSE.MOBILE_ALREADY_REGISTERED });
             }
             const hashedPassword = await bcryptjs_1.default.hash(password, 10);
             const user = await user_model_1.default.create({
@@ -109,7 +109,7 @@ const signup = async (req, res, next) => {
                 data: sanitizeUser(user),
             });
         }
-        return res.status(400).json({ message: "Invalid loginType" });
+        return res.status(400).json({ message: message_1.ERROR_RESPONSE.INVALID_LOGIN });
     }
     catch (error) {
         next(error);
@@ -130,7 +130,7 @@ const sendOtp = async (req, res, next) => {
             });
         }
         const otp = "0000";
-        const otpExpires = (0, moment_1.default)().add(10, "minutes").toDate();
+        const otpExpires = (0, moment_1.default)().add(2, "minutes").toDate();
         user.OTP = otp;
         user.otpExpires = otpExpires;
         await user.save();
@@ -214,7 +214,7 @@ const googleLogin = async (req, res, next) => {
             });
         }
         const googleId = payload.sub;
-        const email = payload.email.toLowerCase().trim();
+        const email = payload.email;
         const name = payload.name || email.split("@")[0];
         let user = await user_model_1.default.findOne({ email });
         if (!user) {

@@ -21,5 +21,6 @@ export declare const ERROR_RESPONSE: {
     USER_SIGNUP: string;
     GOOGLE_ACCOUNT_NO_PASSWORD: string;
     NEW_PASSWORD_SAME_AS_OLD: string;
+    MOBILE_ALREADY_REGISTERED: string;
 };
 //# sourceMappingURL=message.d.ts.map

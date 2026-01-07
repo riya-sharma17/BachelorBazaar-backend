@@ -100,27 +100,36 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
         next(error);
     }
 };
-
-export const sendOtp = async (req: Request, res: Response, next: NextFunction) => {
+export const sendOtp = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
     try {
         const { loginType, email, mobileNumber } = req.body;
+
+        const user = await userModel.findOne(
+            loginType === loginTypeEnum.EMAIL
+                ? { email }
+                : { mobileNumber }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                message:
+                    loginType === loginTypeEnum.EMAIL
+                        ? "Email does not exist"
+                        : "Mobile number does not exist",
+            });
+        }
 
         const otp = "0000";
         const otpExpires = moment().add(10, "minutes").toDate();
 
-        await userModel.findOneAndUpdate(
-            loginType === loginTypeEnum.EMAIL
-                ? { email }
-                : { mobileNumber },
-            {
-                OTP: otp,
-                otpExpires,
-                loginType,
-                email,
-                mobileNumber,
-            },
-            { upsert: true, new: true }
-        );
+        user.OTP = otp;
+        user.otpExpires = otpExpires;
+
+        await user.save();
 
         return res.status(200).json({
             message: SUCCESS_RESPONSE.OTP_SENT,

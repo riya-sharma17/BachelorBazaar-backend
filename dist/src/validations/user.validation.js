@@ -20,7 +20,6 @@ exports.signupValidation = joi_1.default.object({
         .required(),
     name: name.required(),
     password: password.required(),
-    otp: otp.required(),
     email: joi_1.default.when("loginType", {
         is: enum_1.loginType.EMAIL,
         then: email.required(),

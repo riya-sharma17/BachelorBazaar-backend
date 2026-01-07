@@ -17,7 +17,6 @@ export const signupValidation = Joi.object({
 
   name: name.required(),
   password: password.required(),
-  otp: otp.required(),
 
   email: Joi.when("loginType", {
     is: loginTypeEnum.EMAIL,

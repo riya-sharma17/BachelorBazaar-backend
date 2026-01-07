@@ -2,7 +2,7 @@ export const SUCCESS_RESPONSE = {
     USER_REGISTERED: "User registered successfully",
     LOGIN_SUCCESS: "Login successful",
     GOOGLE_LOGIN_SUCCESS: "Google login successful",
-    OTP_SENT: "OTP sent to email",
+    OTP_SENT: "OTP sent successfully",
     PASSWORD_RESET: "Password reset successfully",
     PASSWORD_CHANGED: "Password changed successfully",
     USERS_FETCHED: "Users fetched successfully",

@@ -24,7 +24,9 @@ const userSchema: Schema<IUser> = new Schema(
 
         mobileNumber: {
             type: String,
-            required: false
+            required: false,
+            sparse: true,
+            unique: true,
         },
 
         address: {

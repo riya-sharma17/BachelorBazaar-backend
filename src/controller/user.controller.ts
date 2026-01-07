@@ -361,44 +361,44 @@ export const resetPassword = async (
 };
 
 export const changePassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
+    req: Request,
+    res: Response,
+    next: NextFunction
 ) => {
-  try {
-    const userId = res.locals.user._id;
-    const { oldPassword, newPassword } = req.body;
-    
-    const user = await userModel.findById(userId);
-    if (!user || !user.password) {
-      return res.status(404).json({
-        message: ERROR_RESPONSE.USER_NOT_FOUND,
-      });
+    try {
+        const userId = res.locals.user._id;
+        const { oldPassword, newPassword } = req.body;
+
+        const user = await userModel.findById(userId);
+        if (!user || !user.password) {
+            return res.status(404).json({
+                message: ERROR_RESPONSE.USER_NOT_FOUND,
+            });
+        }
+
+        const match = await bcrypt.compare(oldPassword, user.password);
+        if (!match) {
+            return res.status(400).json({
+                message: ERROR_RESPONSE.OLD_PASSWORD_INCORRECT,
+            });
+        }
+
+        const samePassword = await bcrypt.compare(newPassword, user.password);
+        if (samePassword) {
+            return res.status(400).json({
+                message: ERROR_RESPONSE.NEW_PASSWORD_SAME_AS_OLD,
+            });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        return res.status(200).json({
+            message: SUCCESS_RESPONSE.PASSWORD_CHANGED,
+        });
+    } catch (error) {
+        next(error);
     }
-
-    const match = await bcrypt.compare(oldPassword, user.password);
-    if (!match) {
-      return res.status(400).json({
-        message: ERROR_RESPONSE.OLD_PASSWORD_INCORRECT,
-      });
-    }
-
-    const samePassword = await bcrypt.compare(newPassword, user.password);
-    if (samePassword) {
-      return res.status(400).json({
-        message: ERROR_RESPONSE.NEW_PASSWORD_SAME_AS_OLD,
-      });
-    }
-
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
-
-    return res.status(200).json({
-      message: SUCCESS_RESPONSE.PASSWORD_CHANGED,
-    });
-  } catch (error) {
-    next(error);
-  }
 };
 
 export const listUsers = async (

@@ -110,14 +110,44 @@ export const googleLoginValidation = Joi.object({
    FORGOT PASSWORD
 ========================= */
 export const forgotPasswordValidation = Joi.object({
-  email: email.required(),
+  loginType: Joi.string()
+    .valid(loginTypeEnum.EMAIL, loginTypeEnum.MOBILE)
+    .required(),
+
+  email: Joi.when("loginType", {
+    is: loginTypeEnum.EMAIL,
+    then: email.required(),
+    otherwise: Joi.forbidden(),
+  }),
+
+  mobileNumber: Joi.when("loginType", {
+    is: loginTypeEnum.MOBILE,
+    then: mobileNumber.required(),
+    otherwise: Joi.forbidden(),
+  }),
 }).options({ abortEarly: false });
+
 
 /* =========================
    RESET PASSWORD
 ========================= */
 export const resetPasswordValidation = Joi.object({
-  email: email.required(),
+  loginType: Joi.string()
+    .valid(loginTypeEnum.EMAIL, loginTypeEnum.MOBILE)
+    .required(),
+
+  email: Joi.when("loginType", {
+    is: loginTypeEnum.EMAIL,
+    then: email.required(),
+    otherwise: Joi.forbidden(),
+  }),
+
+  mobileNumber: Joi.when("loginType", {
+    is: loginTypeEnum.MOBILE,
+    then: mobileNumber.required(),
+    otherwise: Joi.forbidden(),
+  }),
+
   otp: otp.required(),
   newPassword: password.required(),
 }).options({ abortEarly: false });

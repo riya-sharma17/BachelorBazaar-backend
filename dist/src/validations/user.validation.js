@@ -98,13 +98,37 @@ exports.googleLoginValidation = joi_1.default.object({
    FORGOT PASSWORD
 ========================= */
 exports.forgotPasswordValidation = joi_1.default.object({
-    email: email.required(),
+    loginType: joi_1.default.string()
+        .valid(enum_1.loginType.EMAIL, enum_1.loginType.MOBILE)
+        .required(),
+    email: joi_1.default.when("loginType", {
+        is: enum_1.loginType.EMAIL,
+        then: email.required(),
+        otherwise: joi_1.default.forbidden(),
+    }),
+    mobileNumber: joi_1.default.when("loginType", {
+        is: enum_1.loginType.MOBILE,
+        then: mobileNumber.required(),
+        otherwise: joi_1.default.forbidden(),
+    }),
 }).options({ abortEarly: false });
 /* =========================
    RESET PASSWORD
 ========================= */
 exports.resetPasswordValidation = joi_1.default.object({
-    email: email.required(),
+    loginType: joi_1.default.string()
+        .valid(enum_1.loginType.EMAIL, enum_1.loginType.MOBILE)
+        .required(),
+    email: joi_1.default.when("loginType", {
+        is: enum_1.loginType.EMAIL,
+        then: email.required(),
+        otherwise: joi_1.default.forbidden(),
+    }),
+    mobileNumber: joi_1.default.when("loginType", {
+        is: enum_1.loginType.MOBILE,
+        then: mobileNumber.required(),
+        otherwise: joi_1.default.forbidden(),
+    }),
     otp: otp.required(),
     newPassword: password.required(),
 }).options({ abortEarly: false });

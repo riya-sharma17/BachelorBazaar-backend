@@ -258,15 +258,10 @@ const googleLogin = async (req, res, next) => {
 exports.googleLogin = googleLogin;
 const forgotPassword = async (req, res, next) => {
     try {
-        const { email } = req.body;
-        if (!email) {
-            return res.status(400).json({
-                message: message_1.ERROR_RESPONSE.EMAIL_REQUIRED,
-            });
-        }
-        const user = await user_model_1.default.findOne({
-            email: email,
-        });
+        const { loginType, email, mobileNumber } = req.body;
+        const user = await user_model_1.default.findOne(loginType === enum_1.loginType.EMAIL
+            ? { email }
+            : { mobileNumber });
         if (!user) {
             return res.status(200).json({
                 message: message_1.SUCCESS_RESPONSE.OTP_SENT,
@@ -277,7 +272,16 @@ const forgotPassword = async (req, res, next) => {
                 message: message_1.ERROR_RESPONSE.GOOGLE_ACCOUNT_NO_PASSWORD,
             });
         }
-        await generateAndSendOTP(user);
+        const otp = (0, OTP_1.generateOTP)();
+        user.OTP = otp;
+        user.otpExpires = (0, moment_1.default)().add(10, "minutes").toDate();
+        await user.save();
+        if (loginType === enum_1.loginType.EMAIL) {
+            await (0, OTP_1.sendOTP)(email, otp);
+        }
+        else {
+            await (0, OTP_1.sendOTP)(mobileNumber, otp);
+        }
         return res.status(200).json({
             message: message_1.SUCCESS_RESPONSE.OTP_SENT,
         });
@@ -289,8 +293,10 @@ const forgotPassword = async (req, res, next) => {
 exports.forgotPassword = forgotPassword;
 const resetPassword = async (req, res, next) => {
     try {
-        const { email, otp, newPassword } = req.body;
-        const user = await user_model_1.default.findOne({ email });
+        const { loginType, email, mobileNumber, otp, newPassword } = req.body;
+        const user = await user_model_1.default.findOne(loginType === enum_1.loginType.EMAIL
+            ? { email }
+            : { mobileNumber });
         if (!user ||
             user.OTP !== otp ||
             !user.otpExpires ||
@@ -324,6 +330,12 @@ const changePassword = async (req, res, next) => {
         if (!match) {
             return res.status(400).json({
                 message: message_1.ERROR_RESPONSE.OLD_PASSWORD_INCORRECT,
+            });
+        }
+        const samePassword = await bcryptjs_1.default.compare(newPassword, user.password);
+        if (samePassword) {
+            return res.status(400).json({
+                message: message_1.ERROR_RESPONSE.NEW_PASSWORD_SAME_AS_OLD,
             });
         }
         user.password = await bcryptjs_1.default.hash(newPassword, 10);

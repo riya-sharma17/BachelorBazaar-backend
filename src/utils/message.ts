@@ -20,6 +20,7 @@ export const ERROR_RESPONSE = {
     EMAIL_NOT_EXISTS: "email not exists",
     INVALID_LOGIN: "invalid login type",
     USER_SIGNUP: "User not found, please sign up first",
-    GOOGLE_ACCOUNT_NO_PASSWORD: "no google account password"
+    GOOGLE_ACCOUNT_NO_PASSWORD: "no google account password",
+    NEW_PASSWORD_SAME_AS_OLD: "new password cannot be same as old password",
 };
 

@@ -39,16 +39,13 @@ const productSchema = new mongoose_1.Schema({
     title: {
         type: String,
         required: true,
-        trim: true,
     },
     description: {
         type: String,
-        trim: true,
     },
     price: {
         type: Number,
         required: true,
-        min: 0,
     },
     category: {
         type: String,

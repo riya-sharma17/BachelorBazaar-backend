@@ -10,6 +10,14 @@ exports.SUCCESS_RESPONSE = {
     PASSWORD_CHANGED: "Password changed successfully",
     USERS_FETCHED: "Users fetched successfully",
     OTP_VERIFIED: "OTP verified successfully",
+    LOCATION_CREATED: "Location created successfully",
+    LOCATION_FETCHED: "Locations fetched successfully",
+    LOCATION_UPDATED: "Location updated successfully",
+    LOCATION_DELETED: "Location deleted successfully",
+    PRODUCT_CREATED: "Product created successfully",
+    PRODUCT_UPDATED: "Product updated successfully",
+    PRODUCT_DELETED: "Product deleted successfully",
+    PRODUCT_FETCHED: "Product fetched successfully",
 };
 exports.ERROR_RESPONSE = {
     EMAIL_ALREADY_REGISTERED: "Email already registered",
@@ -25,5 +33,10 @@ exports.ERROR_RESPONSE = {
     GOOGLE_ACCOUNT_NO_PASSWORD: "no google account password",
     NEW_PASSWORD_SAME_AS_OLD: "new password cannot be same as old password",
     MOBILE_ALREADY_REGISTERED: "Mobile already registered",
+    LOCATION_NOT_FOUND: "Location not found",
+    INVALID_INPUT: "Invalid input",
+    INVALID_ID: "Invalid ID",
+    UNAUTHORIZED: "Unauthorized access",
+    PRODUCT_NOT_FOUND: "Product not found",
 };
 //# sourceMappingURL=message.js.map

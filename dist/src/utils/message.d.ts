@@ -7,6 +7,14 @@ export declare const SUCCESS_RESPONSE: {
     PASSWORD_CHANGED: string;
     USERS_FETCHED: string;
     OTP_VERIFIED: string;
+    LOCATION_CREATED: string;
+    LOCATION_FETCHED: string;
+    LOCATION_UPDATED: string;
+    LOCATION_DELETED: string;
+    PRODUCT_CREATED: string;
+    PRODUCT_UPDATED: string;
+    PRODUCT_DELETED: string;
+    PRODUCT_FETCHED: string;
 };
 export declare const ERROR_RESPONSE: {
     EMAIL_ALREADY_REGISTERED: string;
@@ -22,5 +30,10 @@ export declare const ERROR_RESPONSE: {
     GOOGLE_ACCOUNT_NO_PASSWORD: string;
     NEW_PASSWORD_SAME_AS_OLD: string;
     MOBILE_ALREADY_REGISTERED: string;
+    LOCATION_NOT_FOUND: string;
+    INVALID_INPUT: string;
+    INVALID_ID: string;
+    UNAUTHORIZED: string;
+    PRODUCT_NOT_FOUND: string;
 };
 //# sourceMappingURL=message.d.ts.map

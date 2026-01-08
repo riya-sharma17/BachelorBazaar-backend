@@ -1,49 +1,20 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+// import type { Request, Response, NextFunction } from "express";
+// import userModel from "../model/user.model";
+// import jwt from "jsonwebtoken";
+// import type { JwtPayload } from "jsonwebtoken";
+// import * as dotenv from "dotenv";
+// dotenv.config();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyJWT = void 0;
-const user_model_1 = __importDefault(require("../model/user.model"));
+exports.optionalVerifyJWT = exports.verifyJWT = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const dotenv = __importStar(require("dotenv"));
-dotenv.config();
+const user_model_1 = __importDefault(require("../model/user.model"));
 const verifyJWT = async (req, res, next) => {
     try {
-        const authHeader = req.headers['authorization'];
+        const authHeader = req.headers.authorization;
         const token = authHeader && authHeader.split(" ")[1];
         if (!token) {
             res.status(401).json({
@@ -53,8 +24,8 @@ const verifyJWT = async (req, res, next) => {
             });
             return;
         }
-        const decodedToken = jsonwebtoken_1.default.verify(token, process.env.PRIVATE_KEY);
-        const user = await user_model_1.default.findById(decodedToken._id);
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.PRIVATE_KEY);
+        const user = await user_model_1.default.findById(decoded._id);
         if (!user) {
             res.status(401).json({
                 code: 401,
@@ -69,10 +40,35 @@ const verifyJWT = async (req, res, next) => {
     catch (error) {
         res.status(401).json({
             status: "failed",
-            error: error?.message,
             message: "Invalid Access Token",
         });
     }
 };
 exports.verifyJWT = verifyJWT;
+const optionalVerifyJWT = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return next();
+        }
+        const token = authHeader.split(" ")[1];
+        if (!token) {
+            return next();
+        }
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.PRIVATE_KEY);
+        if (typeof decoded !== "object" || !("_id" in decoded)) {
+            return next();
+        }
+        const user = await user_model_1.default.findById(decoded._id);
+        if (!user) {
+            return next();
+        }
+        res.locals.user = user;
+        return next();
+    }
+    catch {
+        return next();
+    }
+};
+exports.optionalVerifyJWT = optionalVerifyJWT;
 //# sourceMappingURL=jwtVerify.js.map

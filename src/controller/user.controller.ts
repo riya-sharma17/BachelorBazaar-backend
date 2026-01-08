@@ -79,7 +79,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 
             const exists = await userModel.findOne({ mobileNumber });
             if (exists) {
-                return res.status(400).json({ message: ERROR_RESPONSE.MOBILE_ALREADY_REGISTERED } );
+                return res.status(400).json({ message: ERROR_RESPONSE.MOBILE_ALREADY_REGISTERED });
             }
             const hashedPassword = await bcrypt.hash(password, 10);
             const user = await userModel.create({
@@ -100,6 +100,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
         next(error);
     }
 };
+
 export const sendOtp = async (
     req: Request,
     res: Response,
@@ -278,6 +279,7 @@ export const googleLogin = async (
         next(error);
     }
 };
+
 export const forgotPassword = async (
     req: Request,
     res: Response,
@@ -322,7 +324,6 @@ export const forgotPassword = async (
         next(error);
     }
 };
-
 
 export const resetPassword = async (
     req: Request,

@@ -67,6 +67,19 @@ const productSchema = new mongoose_1.Schema({
         ref: "locations",
         required: true,
     },
+    locationGeo: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            required: true,
+            immutable: true,
+        },
+        coordinates: {
+            type: [Number],
+            required: true,
+            immutable: true,
+        },
+    },
     seller: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "users",
@@ -90,5 +103,6 @@ productSchema.index({ seller: 1 });
 productSchema.index({ category: 1 });
 productSchema.index({ listingType: 1 });
 productSchema.index({ isAvailable: 1 });
+productSchema.index({ locationGeo: "2dsphere" });
 exports.default = mongoose_1.default.model("products", productSchema);
 //# sourceMappingURL=product.model.js.map

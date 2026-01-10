@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.nearbyProductsValidation = exports.productIdParamValidation = exports.updateProductValidation = exports.createProductValidation = void 0;
+exports.nearbyProductsValidation = exports.getProductsValidation = exports.productIdParamValidation = exports.updateProductValidation = exports.createProductValidation = void 0;
 const joi_1 = __importDefault(require("joi"));
 const enum_1 = require("../utils/enum");
 // common fields
@@ -16,6 +16,20 @@ const listingType = joi_1.default.string().valid(...Object.values(enum_1.Product
 const status = joi_1.default.string().valid(...Object.values(enum_1.ProductStatus));
 const objectId = joi_1.default.string().length(24).hex();
 const isAvailable = joi_1.default.boolean();
+//  location object validation
+const locationSchema = joi_1.default.object({
+    addressLine: joi_1.default.string().min(5).max(200).required(),
+    area: joi_1.default.string().min(2).max(100).required(),
+    city: joi_1.default.string().min(2).max(100).required(),
+    geo: joi_1.default.object({
+        type: joi_1.default.string().valid("Point").required(),
+        coordinates: joi_1.default.array()
+            .ordered(joi_1.default.number().min(-180).max(180), // lng
+        joi_1.default.number().min(-90).max(90) // lat
+        )
+            .required(),
+    }).required(),
+});
 // create product validation
 exports.createProductValidation = joi_1.default.object({
     title: title.required(),
@@ -24,8 +38,12 @@ exports.createProductValidation = joi_1.default.object({
     category: category.required(),
     condition: condition.optional(),
     listingType: listingType.required(),
-    locationId: objectId.required(),
-}).options({ abortEarly: false });
+    // either one of these
+    locationId: objectId.optional(),
+    location: locationSchema.optional(),
+})
+    .xor("locationId", "location")
+    .options({ abortEarly: false });
 // update product validation
 exports.updateProductValidation = joi_1.default.object({
     title: title.optional(),
@@ -35,11 +53,22 @@ exports.updateProductValidation = joi_1.default.object({
     condition: condition.optional(),
     listingType: listingType.optional(),
     isAvailable: isAvailable.optional(),
-    status: status.optional(),
-}).options({ abortEarly: false });
+}).min(1)
+    .options({ abortEarly: false });
 // product ID param validation
 exports.productIdParamValidation = joi_1.default.object({
     id: objectId.required(),
+}).options({ abortEarly: false });
+// get all products validation
+exports.getProductsValidation = joi_1.default.object({
+    page: joi_1.default.number().min(1).default(1),
+    limit: joi_1.default.number().min(1).max(50).default(10),
+    category: joi_1.default.string().valid(...Object.values(enum_1.ProductCategory)).optional(),
+    listingType: joi_1.default.string()
+        .valid(...Object.values(enum_1.ProductListingType))
+        .optional(),
+    minPrice: joi_1.default.number().min(0).optional(),
+    maxPrice: joi_1.default.number().min(0).optional(),
 }).options({ abortEarly: false });
 // nearby products validation
 exports.nearbyProductsValidation = joi_1.default.object({

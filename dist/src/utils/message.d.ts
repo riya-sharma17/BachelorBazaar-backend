@@ -35,5 +35,6 @@ export declare const ERROR_RESPONSE: {
     INVALID_ID: string;
     UNAUTHORIZED: string;
     PRODUCT_NOT_FOUND: string;
+    LOCATION_REQUIRED: string;
 };
 //# sourceMappingURL=message.d.ts.map

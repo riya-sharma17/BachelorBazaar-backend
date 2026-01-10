@@ -6,11 +6,15 @@ import {
   ProductStatus,
 } from "../utils/enum";
 
+export interface GeoPoint {
+  type: "Point";
+  coordinates: [number, number];
+}
 export interface IProduct extends Document {
   title: string;
   description?: string;
   price: number;
-
+  locationGeo: GeoPoint;
   category: ProductCategory;
   condition: ProductCondition;
   listingType: ProductListingType;

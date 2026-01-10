@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const user_routes_1 = __importDefault(require("./user.routes"));
 const location_routes_1 = __importDefault(require("./location.routes"));
+const product_routes_1 = __importDefault(require("./product.routes"));
 const router = (0, express_1.Router)();
 router.use('/user', user_routes_1.default);
 router.use("/locations", location_routes_1.default);
+router.use("/products", product_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=routev1.js.map

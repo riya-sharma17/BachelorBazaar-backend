@@ -6,6 +6,7 @@ import {
   getNearbyProducts,
   updateProduct,
   deleteProduct,
+  getProducts,
 } from "../controller/product.controller";
 
 import {
@@ -19,6 +20,7 @@ import {
   updateProductValidation,
   productIdParamValidation,
   nearbyProductsValidation,
+  getProductsValidation,
 } from "../validations/product.validation";
 
 import {
@@ -36,6 +38,12 @@ router.get(
 );
 
 router.get(
+  "/get-all",
+  validateQuery(getProductsValidation),
+  getProducts
+);
+
+router.get(
   "/:id",
   optionalVerifyJWT,
   validateParams(productIdParamValidation),
@@ -43,7 +51,7 @@ router.get(
 );
 
 router.post(
-  "/",
+  "/create",
   verifyJWT,
   validateRequest(createProductValidation),
   createProduct

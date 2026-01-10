@@ -38,5 +38,6 @@ exports.ERROR_RESPONSE = {
     INVALID_ID: "Invalid ID",
     UNAUTHORIZED: "Unauthorized access",
     PRODUCT_NOT_FOUND: "Product not found",
+    LOCATION_REQUIRED: "Location information is required",
 };
 //# sourceMappingURL=message.js.map

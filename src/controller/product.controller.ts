@@ -4,7 +4,7 @@ import productModel from "../model/product.model";
 import locationModel from "../model/location.model";
 import { SUCCESS_RESPONSE, ERROR_RESPONSE } from "../utils/message";
 import { ProductStatus } from "../utils/enum";
-
+import { getGoogleRoadDistance } from "../utils/google.distance";
 interface PopulatedSeller {
     name: string;
 }
@@ -30,27 +30,57 @@ export const createProduct = async (
             condition,
             listingType,
             locationId,
+            location,
         } = req.body;
 
-        if (!mongoose.Types.ObjectId.isValid(locationId)) {
-            return res.status(400).json({ message: ERROR_RESPONSE.INVALID_ID });
+        let locationIdToUse: mongoose.Types.ObjectId;
+        let locationGeoToUse;
+
+        // CASE 1: Existing locationId
+        if (locationId) {
+            if (!mongoose.Types.ObjectId.isValid(locationId)) {
+                return res.status(400).json({
+                    message: ERROR_RESPONSE.INVALID_ID,
+                });
+            }
+
+            const existingLocation = await locationModel.findById(locationId);
+
+            if (!existingLocation) {
+                return res.status(404).json({
+                    message: ERROR_RESPONSE.LOCATION_NOT_FOUND,
+                });
+            }
+
+            if (existingLocation.createdBy.toString() !== sellerId.toString()) {
+                return res.status(403).json({
+                    message: ERROR_RESPONSE.UNAUTHORIZED,
+                });
+            }
+
+            locationIdToUse = existingLocation._id;
+            locationGeoToUse = existingLocation.geo;
         }
 
-        const location = await locationModel.findById(locationId);
+        // CASE 2: New location object
+        else if (location) {
+            const newLocation = await locationModel.create({
+                ...location,
+                createdBy: sellerId,
+            });
 
-        if (!location) {
-            return res.status(404).json({
-                message: ERROR_RESPONSE.LOCATION_NOT_FOUND,
+            locationIdToUse = newLocation._id;
+            locationGeoToUse = newLocation.geo;
+        }
+
+        // CASE 3: No location provided
+        else {
+            return res.status(400).json({
+                message: ERROR_RESPONSE.LOCATION_REQUIRED,
             });
         }
 
-        // 🔐 Seller must own location
-        if (location.createdBy.toString() !== sellerId.toString()) {
-            return res.status(403).json({
-                message: ERROR_RESPONSE.UNAUTHORIZED,
-            });
-        }
-
+        // CREATE PRODUCT WITH locationGeo
         const product = await productModel.create({
             title,
             description,
@@ -58,8 +88,11 @@ export const createProduct = async (
             category,
             condition,
             listingType,
-            location: locationId,
+            location: locationIdToUse,
+            locationGeo: locationGeoToUse,
             seller: sellerId,
+            status: ProductStatus.ACTIVE,
+            isAvailable: true,
         });
 
         return res.status(201).json({
@@ -80,7 +113,11 @@ export const getProductById = async (
         const { id } = req.params;
 
         const product = await productModel
-            .findById(id)
+            .findOne({
+                _id: id,
+                status: ProductStatus.ACTIVE,
+                isAvailable: true,
+            })
             .populate("seller", "name")
             .populate("location", "area city")
             .lean();
@@ -129,7 +166,7 @@ export const getNearbyProducts = async (
         const buyerLat = Number(lat);
         const buyerLng = Number(lng);
 
-        if (!buyerLat || !buyerLng) {
+        if (isNaN(buyerLat) || isNaN(buyerLng)) {
             return res.status(400).json({
                 message: ERROR_RESPONSE.INVALID_INPUT,
             });
@@ -137,7 +174,6 @@ export const getNearbyProducts = async (
 
         const products = await productModel.aggregate([
             {
-
                 $geoNear: {
                     near: {
                         type: "Point",
@@ -146,7 +182,13 @@ export const getNearbyProducts = async (
                     distanceField: "distance",
                     maxDistance: Number(radius),
                     spherical: true,
-                    key: "location.geo",
+                    key: "locationGeo",
+                },
+            },
+            {
+                $match: {
+                    status: ProductStatus.ACTIVE,
+                    isAvailable: true,
                 },
             },
             {
@@ -174,6 +216,7 @@ export const getNearbyProducts = async (
                     category: 1,
                     condition: 1,
                     listingType: 1,
+                    locationGeo: 1,
                     "location.area": 1,
                     "location.city": 1,
                     "seller.name": 1,
@@ -182,25 +225,40 @@ export const getNearbyProducts = async (
             },
         ]);
 
+        const MAX_GOOGLE_CALLS = 5;
+        const topProducts = products.slice(0, MAX_GOOGLE_CALLS);
+
+        const enrichedProducts = await Promise.all(
+            topProducts.map(async (p: any) => {
+                const googleData = await getGoogleRoadDistance(
+                    { lat: buyerLat, lng: buyerLng },
+                    {
+                        lat: p.locationGeo.coordinates[1],
+                        lng: p.locationGeo.coordinates[0],
+                    }
+                );
+
+                return {
+                    _id: p._id,
+                    title: p.title,
+                    price: p.price,
+                    category: p.category,
+                    condition: p.condition,
+                    listingType: p.listingType,
+                    seller: { name: p.seller.name },
+                    location: {
+                        area: p.location.area,
+                        city: p.location.city,
+                    },
+                    distanceKm: googleData.distanceKm,
+                    etaMinutes: googleData.etaMinutes,
+                };
+            })
+        );
+
         return res.status(200).json({
             message: SUCCESS_RESPONSE.PRODUCT_FETCHED,
-            data: products.map((p) => ({
-                _id: p._id,
-                title: p.title,
-                price: p.price,
-                category: p.category,
-                condition: p.condition,
-                listingType: p.listingType,
-                seller: {
-                    name: p.seller.name,
-                },
-                location: {
-                    area: p.location.area,
-                    city: p.location.city,
-                },
-                distanceKm: +(p.distance / 1000).toFixed(1),
-                etaMinutes: Math.ceil((p.distance / 1000 / 20) * 60),
-            })),
+            data: enrichedProducts,
         });
     } catch (error) {
         next(error);
@@ -230,7 +288,22 @@ export const updateProduct = async (
             });
         }
 
-        Object.assign(product, req.body);
+        const allowedUpdates = [
+            "title",
+            "description",
+            "price",
+            "category",
+            "condition",
+            "listingType",
+            "isAvailable",
+        ];
+
+        allowedUpdates.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                (product as any)[field] = req.body[field];
+            }
+        });
+
         await product.save();
 
         return res.status(200).json({
@@ -276,3 +349,76 @@ export const deleteProduct = async (
         next(error);
     }
 };
+
+export const getProducts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const {
+            page = 1,
+            limit = 10,
+            category,
+            listingType,
+            minPrice,
+            maxPrice,
+        } = req.query as any;
+
+        const skip = (page - 1) * limit;
+
+        const filter: any = {
+            status: ProductStatus.ACTIVE,
+            isAvailable: true,
+        };
+
+        if (category) filter.category = category;
+        if (listingType) filter.listingType = listingType;
+
+        if (minPrice || maxPrice) {
+            filter.price = {};
+            if (minPrice) filter.price.$gte = Number(minPrice);
+            if (maxPrice) filter.price.$lte = Number(maxPrice);
+        }
+
+        const [products, total] = await Promise.all([
+            productModel
+                .find(filter)
+                .populate("location", "area city")
+                .populate("seller", "name")
+                .sort({ createdAt: -1 })
+                .skip(Number(skip))
+                .limit(Number(limit))
+                .lean(),
+
+            productModel.countDocuments(filter),
+        ]);
+
+        return res.status(200).json({
+            message: SUCCESS_RESPONSE.PRODUCT_FETCHED,
+            meta: {
+                page: Number(page),
+                limit: Number(limit),
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+            data: products.map((p) => ({
+                _id: p._id,
+                title: p.title,
+                price: p.price,
+                category: p.category,
+                listingType: p.listingType,
+                seller: {
+                    name: (p.seller as any).name,
+                },
+                location: {
+                    area: (p.location as any).area,
+                    city: (p.location as any).city,
+                },
+            })),
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
